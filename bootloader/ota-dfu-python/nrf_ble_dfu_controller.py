@@ -13,7 +13,7 @@ class NrfBleDfuController(object, metaclass=ABCMeta):
     ctrlpt_cccd_handle   = 0
     data_handle          = 0
 
-    pkt_receipt_interval = 10
+    pkt_receipt_interval = 20
     pkt_payload_size     = 20
 
     # --------------------------------------------------------------------------

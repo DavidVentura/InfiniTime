@@ -7,6 +7,7 @@
 #include "Screen.h"
 #include "ScreenList.h"
 #include "components/datetime/DateTimeController.h"
+#include "systemtask/SystemTask.h"
 
 namespace Pinetime {
   namespace Drivers {
@@ -31,7 +32,8 @@ namespace Pinetime {
               Controllers::NotificationManager& notificatioManager,
               Controllers::Settings& settingsController,
               Controllers::HeartRateController& heartRateController,
-              Controllers::MotionController& motionController);
+              Controllers::MotionController& motionController,
+              System::SystemTask& systemTask);
         ~Clock() override;
 
         bool Refresh() override;
@@ -46,10 +48,12 @@ namespace Pinetime {
         Controllers::Settings& settingsController;
         Controllers::HeartRateController& heartRateController;
         Controllers::MotionController& motionController;
+	System::SystemTask& systemTask;
 
-        ScreenList<2> screens;
+        ScreenList<3> screens;
         std::unique_ptr<Screen> WatchFaceDigitalScreen();
         std::unique_ptr<Screen> WatchFaceAnalogScreen();
+        std::unique_ptr<Screen> WatchFaceTerminalScreen();
 
         // Examples for more watch faces
         // std::unique_ptr<Screen> WatchFaceMinimalScreen();
