@@ -58,6 +58,7 @@ namespace Pinetime {
 
         lv_obj_t* prompt_date;
         lv_obj_t* prompt_status;
+        lv_obj_t* prompt_notif;
 
         lv_obj_t* label_step;
         lv_obj_t* label_bat;

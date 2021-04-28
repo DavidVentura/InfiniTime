@@ -3,9 +3,6 @@
 #include <date/date.h>
 #include <lvgl/lvgl.h>
 #include <cstdio>
-#include "BatteryIcon.h"
-#include "BleIcon.h"
-#include "NotificationIcon.h"
 #include "Symbols.h"
 #include "components/battery/BatteryController.h"
 #include "components/ble/BleController.h"
@@ -43,26 +40,6 @@ WatchFaceTerminal::WatchFaceTerminal(DisplayApp* app,
   displayedChar[3] = 0;
   displayedChar[4] = 0;
 
-  //batteryIcon = lv_label_create(lv_scr_act(), nullptr);
-  //lv_label_set_text(batteryIcon, Symbols::batteryFull);
-  //lv_obj_align(batteryIcon, lv_scr_act(), LV_ALIGN_IN_TOP_RIGHT, -5, 2);
-
-  batteryPlug = lv_label_create(lv_scr_act(), nullptr);
-  lv_obj_set_style_local_text_color(batteryPlug, LV_LABEL_PART_MAIN, LV_STATE_DEFAULT, lv_color_hex(0xFF0000));
-  lv_label_set_text(batteryPlug, Symbols::plug);
-  // FIXME
-  //lv_obj_align(batteryPlug, batteryIcon, LV_ALIGN_OUT_LEFT_MID, -5, 0);
-
-  bleIcon = lv_label_create(lv_scr_act(), nullptr);
-  lv_obj_set_style_local_text_color(bleIcon, LV_LABEL_PART_MAIN, LV_STATE_DEFAULT, lv_color_hex(0x0000FF));
-  lv_label_set_text(bleIcon, Symbols::bluetooth);
-  lv_obj_align(bleIcon, batteryPlug, LV_ALIGN_OUT_LEFT_MID, -5, 0);
-
-  notificationIcon = lv_label_create(lv_scr_act(), NULL);
-  lv_obj_set_style_local_text_color(notificationIcon, LV_LABEL_PART_MAIN, LV_STATE_DEFAULT, lv_color_hex(0x00FF00));
-  lv_label_set_text(notificationIcon, NotificationIcon::GetIcon(false));
-  lv_obj_align(notificationIcon, nullptr, LV_ALIGN_IN_TOP_LEFT, 10, 0);
-
   prompt_date = lv_label_create(lv_scr_act(), nullptr);
   lv_obj_set_style_local_text_color(prompt_date, LV_LABEL_PART_MAIN, LV_STATE_DEFAULT, lv_color_hex(0x00FF00));
   lv_obj_align(prompt_date, lv_scr_act(), LV_ALIGN_IN_TOP_LEFT, 0, 0);
@@ -74,7 +51,7 @@ WatchFaceTerminal::WatchFaceTerminal(DisplayApp* app,
   lv_obj_align(label_time, lv_scr_act(), LV_ALIGN_IN_TOP_MID, 0, 25);
 
   label_date = lv_label_create(lv_scr_act(), nullptr);
-  lv_obj_align_origo(label_date, label_time, LV_ALIGN_OUT_BOTTOM_MID, 0, 10);
+  lv_obj_align(label_date, label_time, LV_ALIGN_OUT_RIGHT_MID, 0, 10);
   lv_obj_set_style_local_text_color(label_date, LV_LABEL_PART_MAIN, LV_STATE_DEFAULT, lv_color_hex(0x00FF00));
 
   prompt_status = lv_label_create(lv_scr_act(), nullptr);
@@ -112,13 +89,19 @@ WatchFaceTerminal::WatchFaceTerminal(DisplayApp* app,
   label_bat = lv_label_create(lv_scr_act(), nullptr);
   lv_obj_set_style_local_text_color(label_bat, LV_LABEL_PART_MAIN, LV_STATE_DEFAULT, lv_color_hex(0x00FF00));
   lv_label_set_text_static(label_bat, "Bat");
-  lv_obj_set_width(label_bat, 100);
   lv_obj_align(label_bat, label_step, LV_ALIGN_OUT_BOTTOM_LEFT, 0, 0);
 
   batValue = lv_label_create(lv_scr_act(), nullptr);
   lv_obj_set_style_local_text_color(batValue, LV_LABEL_PART_MAIN, LV_STATE_DEFAULT, lv_color_hex(0x00FF00));
   lv_label_set_text(batValue, "?");
   lv_obj_align_y(batValue, label_bat, LV_ALIGN_OUT_RIGHT_MID, 0);
+  lv_obj_align_x(batValue, lv_scr_act(), LV_ALIGN_CENTER, 5);
+
+  prompt_notif = lv_label_create(lv_scr_act(), nullptr);
+  lv_obj_set_style_local_text_color(prompt_notif, LV_LABEL_PART_MAIN, LV_STATE_DEFAULT, lv_color_hex(0x00FF00));
+  lv_label_set_text_static(prompt_notif, "You have mail");
+  lv_obj_align(prompt_notif, label_bat, LV_ALIGN_OUT_BOTTOM_LEFT, 0, 0);
+  lv_obj_set_hidden(prompt_notif, false);
 
   heartRateController.Start();
 }
@@ -131,31 +114,32 @@ bool WatchFaceTerminal::Refresh() {
   batteryPercentRemaining = batteryController.PercentRemaining();
   if (batteryPercentRemaining.IsUpdated()) {
     auto batteryPercent = batteryPercentRemaining.Get();
-    lv_label_set_text_fmt(batValue, "%d", batteryPercent);
     auto isCharging = batteryController.IsCharging() || batteryController.IsPowerPresent();
-    lv_label_set_text(batteryPlug, BatteryIcon::GetPlugIcon(isCharging));
+    if (isCharging) {
+      lv_label_set_text_fmt(batValue, "%dC", batteryPercent);
+    } else {
+      lv_label_set_text_fmt(batValue, "%d", batteryPercent);
+    }
   }
 
   bleState = bleController.IsConnected();
   if (bleState.IsUpdated()) {
     if (bleState.Get() == true) {
-      lv_label_set_text(bleIcon, BleIcon::GetIcon(true));
+      lv_obj_set_hidden(prompt_notif, true);
+	    // FIXME this links NOTIF to BT
     } else {
-      lv_label_set_text(bleIcon, BleIcon::GetIcon(false));
+	    // FIXME this links NOTIF to BT
+      lv_obj_set_hidden(prompt_notif, false);
     }
   }
-  //lv_obj_align(batteryIcon, lv_scr_act(), LV_ALIGN_IN_TOP_RIGHT, -5, 5);
-  //lv_obj_align(batteryPlug, batteryIcon, LV_ALIGN_OUT_LEFT_MID, -5, 0);
-  lv_obj_align(bleIcon, batteryPlug, LV_ALIGN_OUT_LEFT_MID, -5, 0);
-  lv_obj_set_width(label_bat, 200);
-  lv_obj_align(batValue, label_bat, LV_ALIGN_OUT_RIGHT_MID, 0, 0);
+  lv_obj_align_x(batValue, lv_scr_act(), LV_ALIGN_CENTER, 5);
 
   notificationState = notificatioManager.AreNewNotificationsAvailable();
   if (notificationState.IsUpdated()) {
     if (notificationState.Get() == true)
-      lv_label_set_text(notificationIcon, NotificationIcon::GetIcon(true));
+      lv_obj_set_hidden(prompt_notif, false);
     else
-      lv_label_set_text(notificationIcon, NotificationIcon::GetIcon(false));
+      lv_obj_set_hidden(prompt_notif, true);
   }
 
   currentDateTime = dateTimeController.CurrentDateTime();
@@ -220,7 +204,7 @@ bool WatchFaceTerminal::Refresh() {
     else
       lv_label_set_text_static(heartbeatValue, "---");
 
-    lv_obj_align_origo_x(heartbeatValue, lv_scr_act(), LV_ALIGN_CENTER, 5);
+    lv_obj_align_x(heartbeatValue, lv_scr_act(), LV_ALIGN_CENTER, 5);
     lv_obj_align_y(heartbeatValue, heartbeatBpm, LV_ALIGN_IN_TOP_MID, 0);
   }
 
@@ -228,7 +212,7 @@ bool WatchFaceTerminal::Refresh() {
   motionSensorOk = motionController.IsSensorOk();
   if (stepCount.IsUpdated() || motionSensorOk.IsUpdated()) {
     lv_label_set_text_fmt(stepValue, "%lu", stepCount.Get());
-    lv_obj_align_origo_x(stepValue, lv_scr_act(), LV_ALIGN_CENTER, 5);
+    lv_obj_align_x(stepValue, lv_scr_act(), LV_ALIGN_CENTER, 5);
     lv_obj_align_y(stepValue, label_step, LV_ALIGN_IN_TOP_MID, 0);
   }
 
