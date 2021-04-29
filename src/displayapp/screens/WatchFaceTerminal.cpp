@@ -101,7 +101,7 @@ WatchFaceTerminal::WatchFaceTerminal(DisplayApp* app,
   lv_obj_set_style_local_text_color(prompt_notif, LV_LABEL_PART_MAIN, LV_STATE_DEFAULT, lv_color_hex(0x00FF00));
   lv_label_set_text_static(prompt_notif, "You have mail");
   lv_obj_align(prompt_notif, label_bat, LV_ALIGN_OUT_BOTTOM_LEFT, 0, 0);
-  lv_obj_set_hidden(prompt_notif, false);
+  //lv_obj_set_hidden(prompt_notif, false);
 
   heartRateController.Start();
 }
@@ -120,26 +120,22 @@ bool WatchFaceTerminal::Refresh() {
     } else {
       lv_label_set_text_fmt(batValue, "%d", batteryPercent);
     }
+    lv_obj_align_x(batValue, lv_scr_act(), LV_ALIGN_CENTER, 5);
   }
 
   bleState = bleController.IsConnected();
   if (bleState.IsUpdated()) {
     if (bleState.Get() == true) {
-      lv_obj_set_hidden(prompt_notif, true);
-	    // FIXME this links NOTIF to BT
     } else {
-	    // FIXME this links NOTIF to BT
-      lv_obj_set_hidden(prompt_notif, false);
     }
   }
-  lv_obj_align_x(batValue, lv_scr_act(), LV_ALIGN_CENTER, 5);
 
   notificationState = notificatioManager.AreNewNotificationsAvailable();
   if (notificationState.IsUpdated()) {
-    if (notificationState.Get() == true)
-      lv_obj_set_hidden(prompt_notif, false);
-    else
-      lv_obj_set_hidden(prompt_notif, true);
+    //if (notificationState.Get() == true)
+    //  lv_obj_set_hidden(prompt_notif, false);
+    //else
+      //lv_obj_set_hidden(prompt_notif, true);
   }
 
   currentDateTime = dateTimeController.CurrentDateTime();
