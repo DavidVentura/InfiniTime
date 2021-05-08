@@ -14,6 +14,7 @@
 #include "../DisplayApp.h"
 #include "WatchFaceDigital.h"
 #include "WatchFaceAnalog.h"
+#include "WatchFaceTerminal.h"
 
 using namespace Pinetime::Applications::Screens;
 
@@ -24,7 +25,8 @@ Clock::Clock(DisplayApp* app,
              Controllers::NotificationManager& notificatioManager,
              Controllers::Settings& settingsController,
              Controllers::HeartRateController& heartRateController,
-             Controllers::MotionController& motionController)
+             Controllers::MotionController& motionController,
+             System::SystemTask& systemTask)
   : Screen(app),
     dateTimeController {dateTimeController},
     batteryController {batteryController},
@@ -33,6 +35,7 @@ Clock::Clock(DisplayApp* app,
     settingsController {settingsController},
     heartRateController {heartRateController},
     motionController {motionController},
+    systemTask {systemTask},
     screens {app,
              settingsController.GetClockFace(),
              {
@@ -41,6 +44,9 @@ Clock::Clock(DisplayApp* app,
                },
                [this]() -> std::unique_ptr<Screen> {
                  return WatchFaceAnalogScreen();
+               },
+               [this]() -> std::unique_ptr<Screen> {
+                 return WatchFaceTerminalScreen();
                },
                // Examples for more watch faces
                //[this]() -> std::unique_ptr<Screen> { return WatchFaceMinimalScreen(); },
@@ -78,6 +84,18 @@ std::unique_ptr<Screen> Clock::WatchFaceDigitalScreen() {
 std::unique_ptr<Screen> Clock::WatchFaceAnalogScreen() {
   return std::make_unique<Screens::WatchFaceAnalog>(
     app, dateTimeController, batteryController, bleController, notificatioManager, settingsController);
+}
+
+std::unique_ptr<Screen> Clock::WatchFaceTerminalScreen() {
+  return std::make_unique<Screens::WatchFaceTerminal>(app,
+                                                     dateTimeController,
+                                                     batteryController,
+                                                     bleController,
+                                                     notificatioManager,
+                                                     settingsController,
+                                                     heartRateController,
+                                                     motionController,
+                                                     systemTask);
 }
 
 /*
